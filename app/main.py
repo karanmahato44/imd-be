@@ -38,13 +38,16 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins,
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 
+# Fix TrustedHostMiddleware - allow your Render domain
 app.add_middleware(
     TrustedHostMiddleware,
-    allowed_hosts=["*"] if settings.debug else ["localhost", "127.0.0.1"],
+    allowed_hosts=["*"]
+    if settings.debug
+    else ["localhost", "127.0.0.1", "imd-be.onrender.com", "*.onrender.com"],
 )
 
 
