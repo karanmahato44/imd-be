@@ -1,7 +1,6 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-
-# from fastapi.middleware.trustedhost import TrustedHostMiddleware
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
@@ -44,12 +43,12 @@ app.add_middleware(
 )
 
 # Fix TrustedHostMiddleware - allow your Render domain
-# app.add_middleware(
-#     TrustedHostMiddleware,
-#     allowed_hosts=["*"]
-#     if settings.debug
-#     else ["localhost", "127.0.0.1", "imd-be.onrender.com", "*.onrender.com"],
-# )
+app.add_middleware(
+    TrustedHostMiddleware,
+    allowed_hosts=["*"]
+    if settings.debug
+    else ["localhost", "127.0.0.1", "imd-be.onrender.com", "*.onrender.com"],
+)
 
 
 # Request timing middleware
