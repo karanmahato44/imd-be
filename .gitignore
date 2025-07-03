@@ -39,15 +39,14 @@ venv.bak/
 *~
 
 # Data files
-*.csv
-*.json
-data/
-temp_uploads/
-logs/
-temp_uploads/*.mp3
-temp_uploads/*.wav
-temp_uploads/*.flac
-!temp_uploads/.gitkeep
+# *.csv
+# *.json
+# temp_uploads/
+# logs/
+# temp_uploads/*.mp3
+# temp_uploads/*.wav
+# temp_uploads/*.flac
+# !temp_uploads/.gitkeep
 
 # OS
 .DS_Store
