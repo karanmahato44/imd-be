@@ -16,6 +16,13 @@ from app.utils.logger import setup_logging
 setup_logging()
 logger = structlog.get_logger()
 
+# Log CORS origins for debugging
+logger.info(
+    "CORS origins configured",
+    origins=settings.cors_origins,
+    type=type(settings.cors_origins).__name__,
+)
+
 # Create FastAPI app with lifespan
 app = FastAPI(
     title=settings.app_name,
@@ -23,7 +30,7 @@ app = FastAPI(
     description="AI-powered music recommendation system",
     docs_url="/docs" if settings.debug else None,
     redoc_url="/redoc" if settings.debug else None,
-    lifespan=lifespan
+    lifespan=lifespan,
 )
 
 # Add middleware
@@ -37,8 +44,9 @@ app.add_middleware(
 
 app.add_middleware(
     TrustedHostMiddleware,
-    allowed_hosts=["*"] if settings.debug else ["localhost", "127.0.0.1"]
+    allowed_hosts=["*"] if settings.debug else ["localhost", "127.0.0.1"],
 )
+
 
 # Request timing middleware
 @app.middleware("http")
@@ -47,17 +55,18 @@ async def add_process_time_header(request: Request, call_next):
     response = await call_next(request)
     process_time = time.time() - start_time
     response.headers["X-Process-Time"] = str(process_time)
-    
+
     # Log request
     logger.info(
         "Request processed",
         method=request.method,
         url=str(request.url),
         status_code=response.status_code,
-        process_time=process_time
+        process_time=process_time,
     )
-    
+
     return response
+
 
 # Exception handlers
 @app.exception_handler(StarletteHTTPException)
@@ -66,47 +75,40 @@ async def http_exception_handler(request: Request, exc: StarletteHTTPException):
         "HTTP exception",
         status_code=exc.status_code,
         detail=exc.detail,
-        url=str(request.url)
+        url=str(request.url),
     )
     return JSONResponse(
         status_code=exc.status_code,
-        content={"detail": exc.detail, "status_code": exc.status_code}
+        content={"detail": exc.detail, "status_code": exc.status_code},
     )
+
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
-    logger.error(
-        "Validation error",
-        errors=exc.errors(),
-        url=str(request.url)
-    )
+    logger.error("Validation error", errors=exc.errors(), url=str(request.url))
     return JSONResponse(
         status_code=422,
         content={
             "detail": "Validation error",
             "errors": exc.errors(),
-            "status_code": 422
-        }
+            "status_code": 422,
+        },
     )
+
 
 @app.exception_handler(Exception)
 async def general_exception_handler(request: Request, exc: Exception):
     logger.error(
-        "Unhandled exception",
-        error=str(exc),
-        url=str(request.url),
-        exc_info=True
+        "Unhandled exception", error=str(exc), url=str(request.url), exc_info=True
     )
     return JSONResponse(
-        status_code=500,
-        content={
-            "detail": "Internal server error",
-            "status_code": 500
-        }
+        status_code=500, content={"detail": "Internal server error", "status_code": 500}
     )
+
 
 # Include routers
 app.include_router(api_router, prefix="/api/v1", tags=["recommendations"])
+
 
 # Root endpoint
 @app.get("/")
@@ -114,10 +116,23 @@ async def root():
     return {
         "message": f"Welcome to {settings.app_name}",
         "version": settings.version,
-        "docs": "/docs" if settings.debug else "Documentation disabled in production"
+        "docs": "/docs" if settings.debug else "Documentation disabled in production",
     }
+
 
 # Health check at root level
 @app.get("/health")
 async def health():
     return {"status": "healthy", "version": settings.version}
+
+
+# Debug endpoint to check CORS configuration
+@app.get("/debug/cors")
+async def debug_cors():
+    return {
+        "cors_origins": settings.cors_origins,
+        "type": type(settings.cors_origins).__name__,
+        "count": len(settings.cors_origins)
+        if isinstance(settings.cors_origins, list)
+        else 1,
+    }
