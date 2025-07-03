@@ -1,5 +1,6 @@
 import ast
-import os
+
+# import os
 from pathlib import Path
 from typing import List, Optional, Union
 
@@ -28,7 +29,13 @@ class Settings(BaseSettings):
 
     # CORS settings - handle both list and string from environment
     cors_origins: Union[List[str], str] = Field(
-        default=["http://localhost:3000", "http://localhost:5173"], env="CORS_ORIGINS"
+        default=[
+            "http://localhost:3000",
+            "http://localhost:5173",
+            "https://karanmahato44.github.io",
+            "https://aayushachaudhary.github.io",
+        ],
+        env="CORS_ORIGINS",
     )
 
     @field_validator("cors_origins")
